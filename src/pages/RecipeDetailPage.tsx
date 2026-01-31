@@ -1,8 +1,9 @@
 import { useState, useMemo } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Header } from '@/components/Header';
 import { CookingMode } from '@/components/CookingMode';
 import { recipes } from '@/data/recipes';
+import { useGrocery } from '@/contexts/GroceryContext';
 import { 
   Clock, 
   Users, 
@@ -12,7 +13,9 @@ import {
   ArrowLeft, 
   Minus, 
   Plus,
-  BookOpen
+  BookOpen,
+  ShoppingCart,
+  Check
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -35,10 +38,13 @@ const imageMap: Record<string, string> = {
 
 const RecipeDetailPage = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [servings, setServings] = useState(4);
   const [isCookingMode, setIsCookingMode] = useState(false);
+  const { addIngredients, hasRecipe, removeRecipeIngredients } = useGrocery();
 
   const recipe = useMemo(() => recipes.find(r => r.id === id), [id]);
+  const isInGroceryList = recipe ? hasRecipe(recipe.id) : false;
 
   const scaleFactor = recipe ? servings / recipe.servings : 1;
 
@@ -54,6 +60,19 @@ const RecipeDetailPage = () => {
     easy: 'bg-olive-light text-foreground',
     medium: 'bg-amber text-foreground',
     hard: 'bg-terracotta text-primary-foreground',
+  };
+
+  const handleToggleGrocery = () => {
+    if (!recipe) return;
+    if (isInGroceryList) {
+      removeRecipeIngredients(recipe.id);
+    } else {
+      addIngredients(recipe.id, recipe.name, scaledIngredients);
+    }
+  };
+
+  const handleGoBack = () => {
+    navigate(-1);
   };
 
   if (!recipe) {
@@ -91,7 +110,7 @@ const RecipeDetailPage = () => {
       <section className="relative">
         <div className="absolute inset-0 h-[50vh] overflow-hidden">
           <img
-            src={imageMap[recipe.image]}
+            src={imageMap[recipe.image] || butterChicken}
             alt={recipe.name}
             className="w-full h-full object-cover"
           />
@@ -99,13 +118,13 @@ const RecipeDetailPage = () => {
         </div>
         
         <div className="container mx-auto px-4 relative z-10 pt-8">
-          <Link 
-            to="/recipes" 
-            className="inline-flex items-center gap-2 text-foreground/80 hover:text-foreground transition-colors mb-8"
+          <button 
+            onClick={handleGoBack}
+            className="inline-flex items-center gap-2 text-foreground/80 hover:text-foreground transition-colors mb-8 bg-background/50 backdrop-blur-sm px-4 py-2 rounded-full"
           >
             <ArrowLeft className="w-5 h-5" />
-            Back to Recipes
-          </Link>
+            Back
+          </button>
         </div>
       </section>
 
@@ -216,9 +235,28 @@ const RecipeDetailPage = () => {
 
             {/* Ingredients */}
             <div className="p-8 border-b border-border">
-              <h2 className="font-display text-2xl font-bold text-foreground mb-6">
-                Ingredients
-              </h2>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="font-display text-2xl font-bold text-foreground">
+                  Ingredients
+                </h2>
+                <Button
+                  variant={isInGroceryList ? "secondary" : "outline"}
+                  onClick={handleToggleGrocery}
+                  className="gap-2"
+                >
+                  {isInGroceryList ? (
+                    <>
+                      <Check className="w-4 h-4" />
+                      In Grocery List
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingCart className="w-4 h-4" />
+                      Add to Grocery List
+                    </>
+                  )}
+                </Button>
+              </div>
               <div className="grid sm:grid-cols-2 gap-3">
                 {scaledIngredients.map((ing, index) => (
                   <div 
