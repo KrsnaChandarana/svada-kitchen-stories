@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { X, ChevronLeft, ChevronRight, Timer, Pause, Play, SkipForward } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CookingAnimation } from './CookingAnimation';
+import { StepProgress } from './cooking/StepProgress';
+import { TimerDisplay } from './cooking/TimerDisplay';
 import type { CookingStep } from '@/data/recipes';
 
 interface CookingModeProps {
@@ -16,7 +17,6 @@ export const CookingMode = ({ recipeName, steps, onClose }: CookingModeProps) =>
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [isTimerComplete, setIsTimerComplete] = useState(false);
-  const navigate = useNavigate();
 
   const step = steps[currentStep];
   const hasTimer = step.duration && step.duration > 0;
@@ -49,29 +49,22 @@ export const CookingMode = ({ recipeName, steps, onClose }: CookingModeProps) =>
     return () => clearInterval(interval);
   }, [isTimerRunning, timeRemaining]);
 
-  const formatTime = (seconds: number): string => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
+  const goToStep = useCallback((index: number) => {
+    if (index >= 0 && index < steps.length) {
+      setCurrentStep(index);
+      setTimeRemaining(null);
+      setIsTimerRunning(false);
+      setIsTimerComplete(false);
+    }
+  }, [steps.length]);
 
   const goToNextStep = useCallback(() => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(prev => prev + 1);
-      setTimeRemaining(null);
-      setIsTimerRunning(false);
-      setIsTimerComplete(false);
-    }
-  }, [currentStep, steps.length]);
+    goToStep(currentStep + 1);
+  }, [currentStep, goToStep]);
 
   const goToPrevStep = useCallback(() => {
-    if (currentStep > 0) {
-      setCurrentStep(prev => prev - 1);
-      setTimeRemaining(null);
-      setIsTimerRunning(false);
-      setIsTimerComplete(false);
-    }
-  }, [currentStep]);
+    goToStep(currentStep - 1);
+  }, [currentStep, goToStep]);
 
   const toggleTimer = () => {
     setIsTimerRunning(prev => !prev);
@@ -83,151 +76,109 @@ export const CookingMode = ({ recipeName, steps, onClose }: CookingModeProps) =>
     setIsTimerComplete(true);
   };
 
-  const progress = ((currentStep + 1) / steps.length) * 100;
-
   return (
-    <div className="fixed inset-0 z-50 bg-gradient-cream flex flex-col">
-      {/* Header */}
-      <header className="flex items-center justify-between p-4 border-b border-border bg-background/80 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 bg-gradient-cream flex flex-col h-screen overflow-hidden">
+      {/* Compact Header */}
+      <header className="flex items-center justify-between px-4 py-2 border-b border-border bg-background/90 backdrop-blur-sm flex-shrink-0">
         <button
           onClick={onClose}
           className="p-2 rounded-full hover:bg-muted transition-colors"
+          aria-label="Close cooking mode"
         >
-          <X className="w-6 h-6" />
+          <X className="w-5 h-5" />
         </button>
         
         <div className="text-center">
-          <h1 className="font-display text-xl font-bold text-foreground">{recipeName}</h1>
-          <p className="text-sm text-muted-foreground">
-            Step {currentStep + 1} of {steps.length}
-          </p>
+          <h1 className="font-display text-lg font-bold text-foreground">{recipeName}</h1>
         </div>
         
-        <div className="w-10" /> {/* Spacer for centering */}
+        <div className="w-9" />
       </header>
 
-      {/* Progress bar */}
-      <div className="h-1 bg-muted">
-        <div 
-          className="h-full bg-gradient-warm transition-all duration-500"
-          style={{ width: `${progress}%` }}
+      {/* Step Progress Bar */}
+      <div className="border-b border-border bg-background/50 px-2 flex-shrink-0">
+        <StepProgress 
+          steps={steps} 
+          currentStep={currentStep} 
+          onStepClick={goToStep}
         />
       </div>
 
-      {/* Main content */}
-      <main className="flex-1 overflow-auto flex flex-col items-center justify-center p-6 md:p-12">
-        <div className="max-w-2xl w-full text-center space-y-8 animate-fade-in" key={currentStep}>
-          {/* Step indicator */}
-          <div className="step-indicator mx-auto">
-            {step.id}
+      {/* Main content - Compact single view */}
+      <main className="flex-1 flex flex-col items-center justify-center p-4 min-h-0">
+        <div className="w-full max-w-xl flex flex-col items-center gap-4" key={currentStep}>
+          {/* Row 1: Step indicator + Title */}
+          <div className="text-center">
+            <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground font-bold text-sm mb-2">
+              {step.id}
+            </span>
+            <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">
+              {step.title}
+            </h2>
           </div>
 
-          {/* Step title */}
-          <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground">
-            {step.title}
-          </h2>
-
-          {/* Animation */}
-          <div className="flex justify-center">
+          {/* Row 2: Animation (compact) */}
+          <div className="flex-shrink-0">
             <CookingAnimation type={step.animation} />
           </div>
 
-          {/* Instruction */}
-          <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-xl mx-auto">
+          {/* Row 3: Instruction */}
+          <p className="text-base md:text-lg text-muted-foreground text-center leading-relaxed max-w-md">
             {step.instruction}
           </p>
 
-          {/* Timer */}
+          {/* Row 4: Timer (if applicable) - Inline compact */}
           {hasTimer && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-center gap-2 text-muted-foreground">
-                <Timer className="w-5 h-5" />
-                <span className="text-sm">Timed Step</span>
-              </div>
-              
-              <div className={`text-5xl font-display font-bold ${isTimerComplete ? 'text-secondary animate-glow' : 'text-primary'}`}>
-                {timeRemaining !== null ? formatTime(timeRemaining) : formatTime(step.duration!)}
-              </div>
-
-              {isTimerComplete ? (
-                <p className="text-secondary font-medium animate-pulse">
-                  ✓ Timer complete! Ready for next step
-                </p>
-              ) : (
-                <div className="flex items-center justify-center gap-3">
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    onClick={toggleTimer}
-                    className="gap-2"
-                  >
-                    {isTimerRunning ? (
-                      <>
-                        <Pause className="w-4 h-4" /> Pause
-                      </>
-                    ) : (
-                      <>
-                        <Play className="w-4 h-4" /> Resume
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="lg"
-                    onClick={skipTimer}
-                    className="gap-2 text-muted-foreground"
-                  >
-                    <SkipForward className="w-4 h-4" /> Skip
-                  </Button>
-                </div>
-              )}
+            <div className="flex items-center justify-center mt-2">
+              <TimerDisplay
+                timeRemaining={timeRemaining}
+                duration={step.duration!}
+                isTimerRunning={isTimerRunning}
+                isTimerComplete={isTimerComplete}
+                onToggle={toggleTimer}
+                onSkip={skipTimer}
+              />
             </div>
           )}
         </div>
       </main>
 
-      {/* Navigation */}
-      <footer className="p-6 border-t border-border bg-background/80 backdrop-blur-sm">
-        <div className="max-w-2xl mx-auto flex items-center justify-between gap-4">
+      {/* Compact Navigation Footer */}
+      <footer className="px-4 py-3 border-t border-border bg-background/90 backdrop-blur-sm flex-shrink-0">
+        <div className="max-w-xl mx-auto flex items-center justify-between gap-3">
           <Button
             variant="outline"
-            size="lg"
+            size="default"
             onClick={goToPrevStep}
             disabled={currentStep === 0}
-            className="gap-2"
+            className="gap-1.5"
           >
-            <ChevronLeft className="w-5 h-5" />
-            <span className="hidden sm:inline">Previous</span>
+            <ChevronLeft className="w-4 h-4" />
+            <span className="hidden sm:inline">Prev</span>
           </Button>
 
           {currentStep === steps.length - 1 ? (
             <Button
-              size="lg"
+              size="default"
               onClick={onClose}
-              className="btn-warm flex-1 max-w-xs"
+              className="btn-warm flex-1 max-w-[200px]"
             >
-              🎉 Finish Cooking
+              🎉 Finish
             </Button>
           ) : (
             <Button
-              size="lg"
+              size="default"
               onClick={goToNextStep}
-              className="btn-warm flex-1 max-w-xs gap-2"
+              className="btn-warm flex-1 max-w-[200px] gap-1.5"
             >
-              Next Step
-              <ChevronRight className="w-5 h-5" />
+              Next
+              <ChevronRight className="w-4 h-4" />
             </Button>
           )}
 
-          <Button
-            variant="ghost"
-            size="lg"
-            onClick={goToNextStep}
-            disabled={currentStep === steps.length - 1}
-            className="gap-2 opacity-0 pointer-events-none"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </Button>
+          <div className="text-sm text-muted-foreground font-medium">
+            {currentStep + 1}/{steps.length}
+          </div>
         </div>
       </footer>
     </div>
