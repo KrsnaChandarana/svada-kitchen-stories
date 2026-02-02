@@ -26,6 +26,20 @@ import samosa from '@/assets/recipes/samosa.jpg';
 import dosa from '@/assets/recipes/dosa.jpg';
 import gulabJamun from '@/assets/recipes/gulab-jamun.jpg';
 import palakPaneer from '@/assets/recipes/palak-paneer.jpg';
+import choleBhature from '@/assets/recipes/chole-bhature.jpg';
+import pavBhaji from '@/assets/recipes/pav-bhaji.jpg';
+import dalMakhani from '@/assets/recipes/dal-makhani.jpg';
+import rasmalai from '@/assets/recipes/rasmalai.jpg';
+import alooParatha from '@/assets/recipes/aloo-paratha.jpg';
+import chickenTikkaMasala from '@/assets/recipes/chicken-tikka-masala.jpg';
+import jalebi from '@/assets/recipes/jalebi.jpg';
+import vadaPav from '@/assets/recipes/vada-pav.jpg';
+import dhokla from '@/assets/recipes/dhokla.jpg';
+import idliSambar from '@/assets/recipes/idli-sambar.jpg';
+import paneerTikka from '@/assets/recipes/paneer-tikka.jpg';
+import tandooriRoti from '@/assets/recipes/tandoori-roti.jpg';
+import fishCurry from '@/assets/recipes/fish-curry.jpg';
+import keema from '@/assets/recipes/keema.jpg';
 
 const imageMap: Record<string, string> = {
   '/recipes/butter-chicken.jpg': butterChicken,
@@ -34,6 +48,20 @@ const imageMap: Record<string, string> = {
   '/recipes/dosa.jpg': dosa,
   '/recipes/gulab-jamun.jpg': gulabJamun,
   '/recipes/palak-paneer.jpg': palakPaneer,
+  '/recipes/chole-bhature.jpg': choleBhature,
+  '/recipes/pav-bhaji.jpg': pavBhaji,
+  '/recipes/dal-makhani.jpg': dalMakhani,
+  '/recipes/rasmalai.jpg': rasmalai,
+  '/recipes/aloo-paratha.jpg': alooParatha,
+  '/recipes/chicken-tikka-masala.jpg': chickenTikkaMasala,
+  '/recipes/jalebi.jpg': jalebi,
+  '/recipes/vada-pav.jpg': vadaPav,
+  '/recipes/dhokla.jpg': dhokla,
+  '/recipes/idli-sambar.jpg': idliSambar,
+  '/recipes/paneer-tikka.jpg': paneerTikka,
+  '/recipes/tandoori-roti.jpg': tandooriRoti,
+  '/recipes/fish-curry.jpg': fishCurry,
+  '/recipes/keema.jpg': keema,
 };
 
 const RecipeDetailPage = () => {
