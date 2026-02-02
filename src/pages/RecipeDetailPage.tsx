@@ -100,12 +100,8 @@ const RecipeDetailPage = () => {
   };
 
   const handleGoBack = () => {
-    // Check if there's history to go back to, otherwise navigate to recipes
-    if (window.history.length > 1) {
-      navigate(-1);
-    } else {
-      navigate('/recipes');
-    }
+    // Always navigate to recipes page for consistent behavior
+    navigate('/recipes');
   };
 
   if (!recipe) {
@@ -150,7 +146,7 @@ const RecipeDetailPage = () => {
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
         </div>
         
-        <div className="container mx-auto px-4 relative z-10 pt-8">
+        <div className="container mx-auto px-4 relative z-20 pt-8">
           <button 
             onClick={handleGoBack}
             className="inline-flex items-center gap-2 text-foreground/80 hover:text-foreground transition-colors mb-8 bg-background/50 backdrop-blur-sm px-4 py-2 rounded-full"
