@@ -100,7 +100,12 @@ const RecipeDetailPage = () => {
   };
 
   const handleGoBack = () => {
-    navigate(-1);
+    // Check if there's history to go back to, otherwise navigate to recipes
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/recipes');
+    }
   };
 
   if (!recipe) {
